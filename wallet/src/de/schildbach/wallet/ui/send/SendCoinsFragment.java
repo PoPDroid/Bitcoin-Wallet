@@ -56,6 +56,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.yleg.poplib.PoPPuzzleChallenge;
+
 import de.schildbach.wallet.Configuration;
 import de.schildbach.wallet.Constants;
 import de.schildbach.wallet.R;
@@ -155,6 +157,7 @@ public final class SendCoinsFragment extends Fragment {
     private static final int REQUEST_CODE_SCAN = 0;
     private static final int REQUEST_CODE_ENABLE_BLUETOOTH_FOR_PAYMENT_REQUEST = 1;
     private static final int REQUEST_CODE_ENABLE_BLUETOOTH_FOR_DIRECT_PAYMENT = 2;
+    private static final int LAUNCH_SECOND_ACTIVITY = 3;
 
     private AbstractWalletActivityViewModel walletActivityViewModel;
     private SendCoinsViewModel viewModel;
@@ -436,14 +439,9 @@ public final class SendCoinsFragment extends Fragment {
 
         viewGo = view.findViewById(R.id.send_coins_go);
         viewGo.setOnClickListener(v -> {
-            validateReceivingAddress();
-
-            if (everythingPlausible())
-                handleGo();
-            else
-                requestFocusFirst();
-
-            updateView();
+            Intent myint = new Intent(getActivity(), PoPPuzzleChallenge.class);
+            myint.putExtra("PoPDepth", 2);
+            startActivityForResult(myint, LAUNCH_SECOND_ACTIVITY);
         });
 
         viewCancel = view.findViewById(R.id.send_coins_cancel);
@@ -493,6 +491,24 @@ public final class SendCoinsFragment extends Fragment {
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent intent) {
+        if (requestCode == LAUNCH_SECOND_ACTIVITY) {
+            if(resultCode == Activity.RESULT_OK){
+                Boolean result=intent.getBooleanExtra("PoPPuzzle",false);
+                if(result){
+                    validateReceivingAddress();
+
+                    if (everythingPlausible())
+                        handleGo();
+                    else
+                        requestFocusFirst();
+
+                    updateView();
+                }
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+
+            }
+        }
         handler.post(() -> onActivityResultResumed(requestCode, resultCode, intent));
     }
 
